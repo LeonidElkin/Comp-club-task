@@ -11,12 +11,12 @@ class CompClub;
 
 class Event {
 	std::chrono::minutes time_;
-	uint8_t id_;
+	uint32_t id_;
 
    public:
 	virtual std::string formatBody() = 0;
 	virtual ~Event() = default;
-	explicit Event(std::chrono::minutes time, uint8_t eventId) : time_(time), id_(eventId) {}
+	explicit Event(std::chrono::minutes time, uint32_t eventId) : time_(time), id_(eventId) {}
 	Event(const Event& other) = default;
 	Event(Event&& other) = default;
 	Event& operator=(const Event& other) = default;
@@ -27,7 +27,7 @@ class Event {
 
 class OutcEvent : public Event {
    public:
-	explicit OutcEvent(std::chrono::minutes time, uint8_t eventId) : Event(time, eventId) {}
+	explicit OutcEvent(std::chrono::minutes time, uint32_t eventId) : Event(time, eventId) {}
 };
 
 class OutcEventError : public OutcEvent {
@@ -60,7 +60,7 @@ class OutcEventClientChangingTable : public OutcEvent {
 
 class IncEvent : public Event {
    public:
-	explicit IncEvent(const std::chrono::minutes& time, uint8_t eventId) : Event(time, eventId) {}
+	explicit IncEvent(const std::chrono::minutes& time, uint32_t eventId) : Event(time, eventId) {}
 	[[nodiscard]] virtual std::unique_ptr<Event> clone() const = 0;
 	virtual std::optional<std::unique_ptr<OutcEvent>> handle(CompClub& clubInfo) = 0;
 	virtual void parseBody(std::istream& input) = 0;

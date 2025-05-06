@@ -74,7 +74,7 @@ std::unique_ptr<Event> IncEventClientLeft::clone() const { return std::make_uniq
 
 std::string IncEventClientChangingTable::formatBody() {
 	std::ostringstream oss;
-	oss << clientName_ << tableId_;
+	oss << clientName_ << ' ' << tableId_;
 	return oss.str();
 }
 std::string IncEventClientComing::formatBody() {
@@ -101,7 +101,7 @@ std::string OutcEventError::formatBody() {
 }
 std::string OutcEventClientChangingTable::formatBody() {
 	std::ostringstream oss;
-	oss << clientName_ << tableId_;
+	oss << clientName_ << ' ' << tableId_;
 	return oss.str();
 }
 std::string OutcEventClientLeft::formatBody() {

@@ -3,25 +3,19 @@
 #include <iostream>
 #include <span>
 
-struct CompClubInfo {
-	size_t tablesNum{};
-	size_t costPerHour{};
-	std::chrono::hh_mm_ss<std::chrono::minutes> startTime;
-	std::chrono::hh_mm_ss<std::chrono::minutes> endTime;
-};
+#include "CompClub.h"
 
-static std::optional<CompClubInfo> parseAndValidateFile(std::ifstream &input) {
+static CompClub parseAndValidateCompClubInfo(std::ifstream &input) {
 	std::string lineOfInput;
 	std::istringstream sInput;
-	size_t tablessNum{0ULL};
+	size_t tablesNum{0ULL};
 	size_t costPerHour{0ULL};
 
 	std::getline(input, lineOfInput);
 	sInput.str(lineOfInput);
 
-	if (!(sInput >> tablessNum)) {
-		std::cerr << lineOfInput;
-		return std::nullopt;
+	if (!(sInput >> tablesNum)) {
+		throw std::runtime_error(lineOfInput);
 	}
 
 	std::getline(input, lineOfInput);
@@ -31,8 +25,7 @@ static std::optional<CompClubInfo> parseAndValidateFile(std::ifstream &input) {
 	std::string endTimeStr;
 
 	if (!(sInput >> stTimeStr >> endTimeStr)) {
-		std::cerr << lineOfInput;
-		return std::nullopt;
+		throw std::runtime_error(lineOfInput);
 	}
 
 	std::chrono::minutes stTimeMinutes;
@@ -40,23 +33,18 @@ static std::optional<CompClubInfo> parseAndValidateFile(std::ifstream &input) {
 
 	if (!(std::istringstream(stTimeStr) >> std::chrono::parse("%R", stTimeMinutes)) ||
 	    !(std::istringstream(endTimeStr) >> std::chrono::parse("%R", endTimeMinutes))) {
-		std::cerr << lineOfInput;
-		return std::nullopt;
+		throw std::runtime_error(lineOfInput);
 	}
-
-	std::chrono::hh_mm_ss<std::chrono::minutes> const stHHMM{stTimeMinutes};
-	std::chrono::hh_mm_ss<std::chrono::minutes> const endHHMM{endTimeMinutes};
 
 	std::getline(input, lineOfInput);
 	sInput.clear();
 	sInput.str(lineOfInput);
 
 	if (!(sInput >> costPerHour)) {
-		std::cerr << lineOfInput;
-		return std::nullopt;
+		throw std::runtime_error(lineOfInput);
 	}
 
-	return CompClubInfo{.tablesNum = tablessNum, .costPerHour = costPerHour, .startTime = stHHMM, .endTime = endHHMM};
+	return CompClub(tablesNum, costPerHour, stTimeMinutes, endTimeMinutes);
 }
 
 int main(int argc, char **argv) {
@@ -69,15 +57,17 @@ int main(int argc, char **argv) {
 
 	std::ifstream inputFile(args[1]);
 	if (inputFile.is_open()) {
-		auto info = parseAndValidateFile(inputFile);
-		if (info.has_value()) {
-			auto i = *info;
-			std::cout << info->startTime.to_duration() << " " << info->endTime.to_duration();
-		} else {
+		try {
+			auto club = parseAndValidateCompClubInfo(inputFile);
+			club.parseEventsAndValidate(inputFile);
+			club.handleEvents();
+			club.printResults(std::cout);
+		} catch (std::runtime_error &e) {
+			std::cout << e.what();
 			return 1;
 		}
 	} else {
-		std::cerr << "Couldn't open the input file" << args[1] << "\n";
+		std::cerr << "Couldn't open the input file " << args[1] << "\n";
 		inputFile.close();
 		return 1;
 	}

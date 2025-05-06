@@ -5,6 +5,8 @@ void TableInfo::busy(const std::chrono::minutes& time) {
 }
 void TableInfo::notBusy(const std::chrono::minutes& time) {
 	isBusyAtTheMoment_ = false;
-	totalBusyTime_ += (time - lastChangeSeatTime_);
+	auto lastPersonTimeSpent = time - lastChangeSeatTime_;
+	profit_ += (lastPersonTimeSpent.count() + 59) / 60;
+	totalBusyTime_ += lastPersonTimeSpent;
 }
-void TableInfo::calculateProfit(size_t costPerHour) { profit_ = (totalBusyTime_.count() + 59) / 60 * costPerHour; }
+void TableInfo::calculateProfit(size_t costPerHour) { profit_ *= costPerHour; }

@@ -6,7 +6,7 @@ void CompClub::parseEvent(const std::string &curString) {
 	std::string timeStr;
 	std::chrono::minutes eventTime;
 	std::istringstream curLineStream(curString);
-	uint8_t eventId = 0;
+	uint32_t eventId = 0;
 
 	if (!(curLineStream >> timeStr)) {
 		throw std::runtime_error("Could parse time as string");
@@ -72,9 +72,14 @@ void CompClub::handleEvents() {
 	}
 	for (const auto &client : clients_) {
 		allEvents_.push_back(std::make_unique<OutcEventClientLeft>(endTime_, client.first));
-		clientLeft(client.first, endTime_);
+		auto table = clients_.find(client.first)->second;
+		if (table != 0) {
+			tablesInfo_.at(table).notBusy(endTime_);
+			busyTablesNum_--;
+		}
 	}
-	for (auto table : tablesInfo_) {
+	clients_.clear();
+	for (auto &table : tablesInfo_) {
 		table.calculateProfit(costPerHour_);
 	}
 }
@@ -84,7 +89,7 @@ void CompClub::printResults(std::ostream &out) {
 		out << std::format("{:%R}", event->getTime()) << " " << event->getId() << " " << event->formatBody() << '\n';
 	}
 	out << std::format("{:%R}", endTime_) << '\n';
-	for (size_t i = 0; i < tablesInfo_.size(); ++i) {
+	for (size_t i = 1; i < tablesInfo_.size(); ++i) {
 		out << i << ' ' << tablesInfo_[i].getProfit() << ' ' << std::format("{:%R}", tablesInfo_[i].getTotalBusyTime())
 		    << '\n';
 	}
@@ -95,8 +100,9 @@ std::optional<std::pair<std::string, size_t>> CompClub::clientLeftQueue(const st
 		auto topClient = clientQueue_.front();
 		clientQueue_.pop();
 		auto leftClientTable = clients_.find(leftClient)->second;
-		clients_.erase(leftClient);
-		clients_[topClient] = {leftClientTable};
+		clientLeft(leftClient, time);
+		clients_[topClient] = leftClientTable;
+		tablesInfo_.at(leftClientTable).busy(time);
 		return std::make_pair(topClient, leftClientTable);
 	}
 	clientLeft(leftClient, time);
