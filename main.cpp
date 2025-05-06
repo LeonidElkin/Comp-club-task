@@ -72,6 +72,7 @@ int main(int argc, char **argv) {
 		auto info = parseAndValidateFile(inputFile);
 		if (info.has_value()) {
 			auto i = *info;
+			std::cout << info->startTime.to_duration() << " " << info->endTime.to_duration();
 		} else {
 			return 1;
 		}
