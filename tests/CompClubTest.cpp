@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <string>
 
 #include "utils.h"
@@ -19,23 +20,67 @@ static void CompareFiles(const std::string& file1, const std::string& file2) {
 	}
 }
 
-TEST(CompClub, Integration) {
+static void execValid(int testNumber) {
 	std::string basePath = PROJECT_SOURCE_DIR;
-	std::string inputPath = basePath + "/tests/input_files/input1.txt";
-	std::string outputPath = basePath + "/tests/input_files/output1.txt";
-	std::string answerPath = basePath + "/tests/input_files/answer1.txt";
+	std::string prefix = basePath + "/tests/input_files/";
+	std::string testNumberStr = std::to_string(testNumber);
+	std::string inputPath = prefix + "input" + testNumberStr + ".txt";
+	std::string outputPath = prefix + "output" + testNumberStr + ".txt";
+	std::string answerPath = prefix + "answer" + testNumberStr + ".txt";
+
 	std::ifstream input(inputPath);
 	std::ofstream output(outputPath);
 	auto club = parseAndValidateCompClubInfo(input);
 	club.parseEventsAndValidate(input);
 	club.handleEvents();
 	club.printResults(output);
+	output.close();
 
 	CompareFiles(outputPath, answerPath);
-
-	output.close();
 	std::filesystem::remove(outputPath);
 }
+
+class CompClubValidTest : public ::testing::TestWithParam<int> {};
+
+TEST_P(CompClubValidTest, RunsCorrectly) {
+	int testNumber = GetParam();
+	execValid(testNumber);
+}
+
+INSTANTIATE_TEST_SUITE_P(DifferentScenarios, CompClubValidTest, ::testing::Values(1, 2, 3, 4, 8));
+
+static void execInvalid(int testNumber) {
+	std::string basePath = PROJECT_SOURCE_DIR;
+	std::string prefix = basePath + "/tests/input_files/";
+	std::string testNumberStr = std::to_string(testNumber);
+	std::string inputPath = prefix + "input" + testNumberStr + ".txt";
+	std::string answerPath = prefix + "answer" + testNumberStr + ".txt";
+	std::ifstream input(inputPath);
+	std::ifstream answerStream(answerPath);
+
+	std::string ans;
+
+	std::getline(answerStream, ans);
+
+	try {
+		auto club = parseAndValidateCompClubInfo(input);
+		club.parseEventsAndValidate(input);
+		FAIL();
+	} catch (const std::runtime_error& e) {
+		EXPECT_EQ(std::string(e.what()), ans);
+	} catch (...) {
+		FAIL();
+	}
+}
+
+class CompClubInvalidInfoTest : public ::testing::TestWithParam<int> {};
+
+TEST_P(CompClubInvalidInfoTest, RunsIncorrectly) {
+	int testNumber = GetParam();
+	execInvalid(testNumber);
+}
+
+INSTANTIATE_TEST_SUITE_P(DifferentIncorrectScenarios, CompClubInvalidInfoTest, ::testing::Values(5, 6, 7));
 
 TEST(utils, simpleCase) {
 	std::string testString{"23:52"};

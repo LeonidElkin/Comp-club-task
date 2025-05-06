@@ -47,7 +47,7 @@ class CompClub {
 	void changeSeat(const std::string &name, size_t tableId, const std::chrono::minutes &time);
 	std::optional<std::pair<std::string, size_t>> clientLeftQueue(const std::string &leftClient,
 	                                                              const std::chrono::minutes &time);
-	[[nodiscard]] auto checkQueueSize() { return clientQueue_.size() > tablesNum_; }
+	[[nodiscard]] auto checkQueueSize() { return clientQueue_.size() >= tablesNum_; }
 	[[nodiscard]] bool isThereAnyEmptyTable() const { return busyTablesNum_ < tablesNum_; }
 	[[nodiscard]] auto getStartTime() const { return startTime_; }
 };
