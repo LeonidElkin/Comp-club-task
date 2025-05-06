@@ -4,6 +4,7 @@
 #include <span>
 
 #include "CompClub.h"
+#include "utils.h"
 
 static CompClub parseAndValidateCompClubInfo(std::ifstream &input) {
 	std::string lineOfInput;
@@ -31,8 +32,10 @@ static CompClub parseAndValidateCompClubInfo(std::ifstream &input) {
 	std::chrono::minutes stTimeMinutes;
 	std::chrono::minutes endTimeMinutes;
 
-	if (!(std::istringstream(stTimeStr) >> std::chrono::parse("%R", stTimeMinutes)) ||
-	    !(std::istringstream(endTimeStr) >> std::chrono::parse("%R", endTimeMinutes))) {
+	try {
+		stTimeMinutes = parseTimeToMinutes(stTimeStr);
+		endTimeMinutes = parseTimeToMinutes(endTimeStr);
+	} catch (const std::invalid_argument &) {
 		throw std::runtime_error(lineOfInput);
 	}
 

@@ -1,6 +1,7 @@
 #include "CompClub.h"
 
 #include "Event.h"
+#include "utils.h"
 
 void CompClub::parseEvent(const std::string &curString) {
 	std::string timeStr;
@@ -12,7 +13,9 @@ void CompClub::parseEvent(const std::string &curString) {
 		throw std::runtime_error("Could parse time as string");
 	}
 
-	if (!(std::istringstream(timeStr) >> std::chrono::parse("%R", eventTime))) {
+	try {
+		eventTime = parseTimeToMinutes(timeStr);
+	} catch (const std::invalid_argument &) {
 		throw std::runtime_error("Couldn't parse event time");
 	}
 
