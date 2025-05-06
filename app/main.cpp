@@ -6,50 +6,6 @@
 #include "CompClub.h"
 #include "utils.h"
 
-static CompClub parseAndValidateCompClubInfo(std::ifstream &input) {
-	std::string lineOfInput;
-	std::istringstream sInput;
-	size_t tablesNum{0ULL};
-	size_t costPerHour{0ULL};
-
-	std::getline(input, lineOfInput);
-	sInput.str(lineOfInput);
-
-	if (!(sInput >> tablesNum)) {
-		throw std::runtime_error(lineOfInput);
-	}
-
-	std::getline(input, lineOfInput);
-	sInput.clear();
-	sInput.str(lineOfInput);
-	std::string stTimeStr;
-	std::string endTimeStr;
-
-	if (!(sInput >> stTimeStr >> endTimeStr)) {
-		throw std::runtime_error(lineOfInput);
-	}
-
-	std::chrono::minutes stTimeMinutes;
-	std::chrono::minutes endTimeMinutes;
-
-	try {
-		stTimeMinutes = parseTimeToMinutes(stTimeStr);
-		endTimeMinutes = parseTimeToMinutes(endTimeStr);
-	} catch (const std::invalid_argument &) {
-		throw std::runtime_error(lineOfInput);
-	}
-
-	std::getline(input, lineOfInput);
-	sInput.clear();
-	sInput.str(lineOfInput);
-
-	if (!(sInput >> costPerHour)) {
-		throw std::runtime_error(lineOfInput);
-	}
-
-	return CompClub(tablesNum, costPerHour, stTimeMinutes, endTimeMinutes);
-}
-
 int main(int argc, char **argv) {
 	std::span const args(argv, argc);
 

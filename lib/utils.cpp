@@ -1,5 +1,8 @@
-#include <chrono>
 #include "utils.h"
+
+#include <chrono>
+#include <iostream>
+#include "CompClub.h"
 
 std::chrono::minutes parseTimeToMinutes(const std::string &timeStr) {
 	int hours = 0;
@@ -12,3 +15,47 @@ std::chrono::minutes parseTimeToMinutes(const std::string &timeStr) {
 	}
 	return std::chrono::hours(hours) + std::chrono::minutes(minutes);
 };
+
+CompClub parseAndValidateCompClubInfo(std::ifstream &input) {
+	std::string lineOfInput;
+	std::istringstream sInput;
+	size_t tablesNum{0ULL};
+	size_t costPerHour{0ULL};
+
+	std::getline(input, lineOfInput);
+	sInput.str(lineOfInput);
+
+	if (!(sInput >> tablesNum)) {
+		throw std::runtime_error(lineOfInput);
+	}
+
+	std::getline(input, lineOfInput);
+	sInput.clear();
+	sInput.str(lineOfInput);
+	std::string stTimeStr;
+	std::string endTimeStr;
+
+	if (!(sInput >> stTimeStr >> endTimeStr)) {
+		throw std::runtime_error(lineOfInput);
+	}
+
+	std::chrono::minutes stTimeMinutes;
+	std::chrono::minutes endTimeMinutes;
+
+	try {
+		stTimeMinutes = parseTimeToMinutes(stTimeStr);
+		endTimeMinutes = parseTimeToMinutes(endTimeStr);
+	} catch (const std::invalid_argument &) {
+		throw std::runtime_error(lineOfInput);
+	}
+
+	std::getline(input, lineOfInput);
+	sInput.clear();
+	sInput.str(lineOfInput);
+
+	if (!(sInput >> costPerHour)) {
+		throw std::runtime_error(lineOfInput);
+	}
+
+	return CompClub(tablesNum, costPerHour, stTimeMinutes, endTimeMinutes);
+}
